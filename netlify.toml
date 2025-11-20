@@ -5,7 +5,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--loglevel=error"
+  NPM_FLAGS = "--loglevel=error --no-optional"
 
 [[redirects]]
   from = "/*"

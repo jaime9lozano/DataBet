@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy:netlify": "npm run build && netlify deploy --dir=dist --prod-if-unlocked"
+    "deploy:netlify": "npm run build && netlify deploy --dir=dist --prod-if-unlocked --no-build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.84.0",
