@@ -123,6 +123,61 @@
   color: #fca5a5;
 }
 
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.insights-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.insight {
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+}
+
+.insight-positive {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+
+.insight-warning {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fcd34d;
+}
+
+.insight-info {
+  background: rgba(14, 165, 233, 0.2);
+  color: #7dd3fc;
+}
+
+.breakdown-card table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+.breakdown-card th,
+.breakdown-card td {
+  text-align: left;
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.breakdown-card tr:last-child td {
+  border-bottom: none;
+}
+
 .label {
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -151,6 +206,21 @@
   border-radius: 1rem;
   padding: 1.5rem;
   background: rgba(15, 23, 42, 0.8);
+}
+
+.chart-panel {
+  margin-top: 1rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.chart-wrapper {
+  margin-top: 1rem;
+  height: 260px;
 }
 
 .form-grid {
