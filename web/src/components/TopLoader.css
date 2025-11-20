@@ -1,0 +1,33 @@
+.top-loader {
+  position: sticky;
+  top: 0;
+  height: 4px;
+  width: 100%;
+  background: rgba(148, 163, 184, 0.2);
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f97316, #22d3ee);
+  transition: width 0.3s ease;
+}
+
+.bar-active {
+  width: 85%;
+  animation: pulse 1s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translateX(-10%);
+  }
+  50% {
+    transform: translateX(15%);
+  }
+  100% {
+    transform: translateX(40%);
+  }
+}

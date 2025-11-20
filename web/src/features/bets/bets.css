@@ -1,0 +1,257 @@
+.bets-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+.bets-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.bets-header h1 {
+  margin: 0.25rem 0;
+}
+
+.bets-header .ghost {
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: transparent;
+  color: inherit;
+}
+
+.filters-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1rem;
+  background: rgba(2, 6, 23, 0.6);
+}
+
+.filters-bar label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.filters-bar label.full {
+  grid-column: 1 / -1;
+}
+
+.filters-bar input,
+.filters-bar select {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 0.65rem;
+  background: transparent;
+  color: inherit;
+}
+
+.filters-bar select[multiple] {
+  min-height: 5rem;
+}
+
+.filters-loader {
+  align-self: end;
+  font-size: 0.9rem;
+}
+
+.filters-hint {
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.stats-grid article {
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.period-card {
+  grid-column: 1 / -1;
+}
+
+.period-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.period-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.period-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.period-values {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.roi-positive {
+  color: #86efac;
+}
+
+.roi-negative {
+  color: #fca5a5;
+}
+
+.label {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.muted {
+  color: rgba(226, 232, 240, 0.7);
+  font-size: 0.95rem;
+}
+
+.subhead {
+  color: rgba(226, 232, 240, 0.8);
+  margin: 0.15rem 0 0;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.panel {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-grid input,
+.form-grid textarea {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 0.7rem 0.85rem;
+  background: rgba(2, 6, 23, 0.4);
+  color: inherit;
+}
+
+.form-grid button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.9rem 1.5rem;
+  background: #22d3ee;
+  font-weight: 700;
+  color: #082f49;
+}
+
+.form-error {
+  color: #fca5a5;
+  margin: 0;
+}
+
+.form-success {
+  color: #86efac;
+  margin: 0;
+}
+
+.form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.upload input {
+  display: none;
+}
+
+.upload span {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px dashed rgba(148, 163, 184, 0.8);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  cursor: pointer;
+}
+
+.bets-table {
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.bets-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bets-table th,
+.bets-table td {
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.status-pill {
+  border-radius: 999px;
+  padding: 0.2rem 0.8rem;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.status-won {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+
+.status-lost {
+  background: rgba(248, 113, 113, 0.2);
+  color: #fecdd3;
+}
+
+.status-pending {
+  background: rgba(248, 250, 252, 0.2);
+  color: #f8fafc;
+}
+
+.status-void,
+.status-cashed_out {
+  background: rgba(148, 163, 184, 0.3);
+  color: #e2e8f0;
+}

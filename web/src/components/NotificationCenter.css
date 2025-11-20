@@ -1,0 +1,41 @@
+.notification-center {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 1000;
+}
+
+.toast {
+  min-width: 260px;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.toast button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.toast-success {
+  background: #bef264;
+}
+
+.toast-error {
+  background: #fecdd3;
+}
+
+.toast-info {
+  background: #bae6fd;
+}
