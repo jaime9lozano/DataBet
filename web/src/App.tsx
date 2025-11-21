@@ -2,7 +2,8 @@ import './App.css'
 import { useSession } from './lib/session'
 import { FullPageLoader } from './components/FullPageLoader'
 import { AuthPanel } from './features/auth/AuthPanel'
-import { BetsView } from './features/bets'
+import { BankrollProvider } from './lib/bankroll'
+import { BankrollGate } from './features/bankrolls/BankrollGate'
 import { NotificationCenter } from './components/NotificationCenter'
 
 function App() {
@@ -28,7 +29,9 @@ function App() {
 
   return (
     <div className="app-shell">
-      <BetsView />
+      <BankrollProvider>
+        <BankrollGate />
+      </BankrollProvider>
       <NotificationCenter />
     </div>
   )

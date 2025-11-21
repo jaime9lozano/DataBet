@@ -1,16 +1,16 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import type { Bankroll, NewBet } from '../../../lib/types'
+import type { NewBet } from '../../../lib/types'
+import { useBankroll } from '../../../lib/bankroll'
 
 interface AddBetFormProps {
   onSubmit: (payload: NewBet) => Promise<void>
   isSubmitting: boolean
   lastError: string | null
-  bankrolls: Bankroll[]
-  isLoadingBankrolls: boolean
 }
 
-export function AddBetForm({ onSubmit, isSubmitting, lastError, bankrolls, isLoadingBankrolls }: AddBetFormProps) {
-  const [bankrollId, setBankrollId] = useState('')
+export function AddBetForm({ onSubmit, isSubmitting, lastError }: AddBetFormProps) {
+  const { activeBankroll, bankrolls, isLoading } = useBankroll()
+  const [manualBankrollId, setManualBankrollId] = useState('')
   const [stake, setStake] = useState('')
   const [odds, setOdds] = useState('')
   const [notes, setNotes] = useState('')
@@ -18,19 +18,25 @@ export function AddBetForm({ onSubmit, isSubmitting, lastError, bankrolls, isLoa
   const [feedback, setFeedback] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!bankrollId && bankrolls.length) {
-      setBankrollId(bankrolls[0].id)
+    if (activeBankroll) {
+      setManualBankrollId(activeBankroll.id)
+      return
     }
-  }, [bankrollId, bankrolls])
+    if (!manualBankrollId && bankrolls.length) {
+      setManualBankrollId(bankrolls[0].id)
+    }
+  }, [activeBankroll, bankrolls, manualBankrollId])
+
+  const resolvedBankrollId = activeBankroll?.id ?? manualBankrollId
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!bankrollId || !stake || !odds || !placedAt) return
+    if (!resolvedBankrollId || !stake || !odds || !placedAt) return
 
     setFeedback(null)
     try {
       await onSubmit({
-        bankroll_id: bankrollId,
+        bankroll_id: resolvedBankrollId,
         stake: Number(stake),
         odds: Number(odds),
         placed_at: new Date(placedAt).toISOString(),
@@ -46,7 +52,8 @@ export function AddBetForm({ onSubmit, isSubmitting, lastError, bankrolls, isLoa
     }
   }
 
-  const canSubmit = Boolean(bankrollId && stake && odds && placedAt && !isSubmitting)
+  const canSubmit = Boolean(resolvedBankrollId && stake && odds && placedAt && !isSubmitting)
+  const showSelection = !activeBankroll
 
   return (
     <article className="panel">
@@ -55,14 +62,21 @@ export function AddBetForm({ onSubmit, isSubmitting, lastError, bankrolls, isLoa
       <form className="form-grid" onSubmit={handleSubmit}>
         <label>
           Bankroll
-          <select value={bankrollId} onChange={(event) => setBankrollId(event.target.value)} disabled={isLoadingBankrolls || !bankrolls.length} required>
-            <option value="">Selecciona un bankroll</option>
-            {bankrolls.map((bankroll) => (
-              <option key={bankroll.id} value={bankroll.id}>
-                {bankroll.name} · {bankroll.currency}
-              </option>
-            ))}
-          </select>
+          {showSelection ? (
+            <select value={manualBankrollId} onChange={(event) => setManualBankrollId(event.target.value)} disabled={isLoading || !bankrolls.length} required>
+              <option value="">Selecciona un bankroll</option>
+              {bankrolls.map((bankroll) => (
+                <option key={bankroll.id} value={bankroll.id}>
+                  {bankroll.name} · {bankroll.currency}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="selected-bankroll">
+              <span className="label">Bankroll activo</span>
+              <strong>{activeBankroll.name} · {activeBankroll.currency}</strong>
+            </div>
+          )}
         </label>
         <label>
           Stake
@@ -80,7 +94,7 @@ export function AddBetForm({ onSubmit, isSubmitting, lastError, bankrolls, isLoa
           Notas
           <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Opcional" rows={3} />
         </label>
-        {!isLoadingBankrolls && !bankrolls.length && <p className="form-error">Necesitas un bankroll activo antes de registrar apuestas.</p>}
+        {!isLoading && !bankrolls.length && <p className="form-error">Necesitas un bankroll activo antes de registrar apuestas.</p>}
         {lastError && <p className="form-error">{lastError}</p>}
         {feedback && <p className="form-success">{feedback}</p>}
         <button type="submit" disabled={!canSubmit}>

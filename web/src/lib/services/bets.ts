@@ -14,6 +14,9 @@ export async function fetchBets(filters: BetFilters = {}): Promise<Bet[]> {
     .select('*')
     .order('placed_at', { ascending: false })
 
+  if (filters.bankrollId) {
+    query = query.eq('bankroll_id', filters.bankrollId)
+  }
   if (filters.status) {
     query = query.eq('status', filters.status)
   }

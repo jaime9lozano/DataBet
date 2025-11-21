@@ -45,6 +45,8 @@ export interface Bankroll {
   id: string
   name: string
   currency: string
+  balance: number
+  target_stake_unit: number
 }
 
 export interface BetFilters {
@@ -53,6 +55,7 @@ export interface BetFilters {
   to?: string
   search?: string
   tags?: string[]
+  bankrollId?: string
 }
 
 export interface SessionUser {

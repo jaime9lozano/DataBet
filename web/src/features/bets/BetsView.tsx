@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSession } from '../../lib/session'
-import type { Bankroll, Bet, BetFilters, BetStatus, NewBet, PeriodGrouping } from '../../lib/types'
+import type { Bet, BetFilters, BetStatus, NewBet, PeriodGrouping } from '../../lib/types'
 import { fetchBets, createBet, deleteBet, fetchTags } from '../../lib/services/bets'
-import { fetchBankrolls } from '../../lib/services/bankrolls'
 import { DashboardStats } from './components/DashboardStats'
 import { FiltersBar } from './components/FiltersBar'
 import './bets.css'
@@ -12,6 +11,8 @@ import { AddBetForm } from './components/AddBetForm'
 import { BetList } from './components/BetList'
 import { useNotifications } from '../../lib/notifications'
 import { TopLoader } from '../../components/TopLoader'
+import { useBankroll } from '../../lib/bankroll'
+import { BankrollSwitcher } from '../bankrolls/BankrollSwitcher'
 
 type BetsScreen = 'overview' | 'create' | 'history'
 
@@ -37,6 +38,7 @@ function useMediaQuery(query: string): boolean {
 export function BetsView() {
   const { user, signOut, isAuthActionPending } = useSession()
   const { push } = useNotifications()
+  const { activeBankroll } = useBankroll()
   const queryClient = useQueryClient()
   const isMobile = useMediaQuery('(max-width: 900px)')
   const [activeScreen, setActiveScreen] = useState<BetsScreen>('overview')
@@ -49,17 +51,19 @@ export function BetsView() {
 
   const filters = useMemo<BetFilters>(() => {
     return {
+      bankrollId: activeBankroll?.id,
       status: statusFilter || undefined,
       from: from ? new Date(from).toISOString() : undefined,
       to: to ? new Date(to).toISOString() : undefined,
       search: search ? search.trim() : undefined,
       tags: selectedTags.length ? selectedTags : undefined,
     }
-  }, [statusFilter, from, to, search, selectedTags])
+  }, [activeBankroll?.id, statusFilter, from, to, search, selectedTags])
 
   const { data: bets = [], isFetching, isLoading } = useQuery<Bet[]>({
     queryKey: [
       'bets',
+      filters.bankrollId ?? 'no-bankroll',
       filters.status ?? 'all',
       filters.from ?? 'none',
       filters.to ?? 'none',
@@ -67,18 +71,13 @@ export function BetsView() {
       (filters.tags ?? []).join(','),
     ],
     queryFn: () => fetchBets(filters),
+    enabled: Boolean(filters.bankrollId),
   })
 
   const { data: tagOptions = [] } = useQuery<string[]>({
     queryKey: ['bet-tags'],
     queryFn: fetchTags,
     staleTime: 1000 * 60 * 10,
-  })
-
-  const { data: bankrolls = [], isLoading: isLoadingBankrolls } = useQuery<Bankroll[]>({
-    queryKey: ['bankrolls'],
-    queryFn: fetchBankrolls,
-    staleTime: 1000 * 60 * 5,
   })
 
   const createMutation = useMutation<Bet, Error, NewBet>({
@@ -100,7 +99,11 @@ export function BetsView() {
   })
 
   const handleCreateBet = async (payload: NewBet) => {
-    await createMutation.mutateAsync(payload)
+    if (!activeBankroll) {
+      push('error', 'Selecciona un bankroll antes de registrar apuestas')
+      return
+    }
+    await createMutation.mutateAsync({ ...payload, bankroll_id: activeBankroll.id })
   }
 
   const handleDeleteBet = async (betId: string) => {
@@ -133,11 +136,16 @@ export function BetsView() {
         <div>
           <p className="eyebrow">Panel DataBet</p>
           <h1>Hola, {user?.email}</h1>
-          <p className="subhead">Revisa tu rendimiento y añade nuevas apuestas.</p>
+          <p className="subhead">
+            {activeBankroll ? `Operando sobre ${activeBankroll.name}` : 'Selecciona un bankroll para empezar.'}
+          </p>
         </div>
-        <button className="ghost" onClick={() => { void handleSignOut() }} disabled={isAuthActionPending}>
-          {isAuthActionPending ? 'Saliendo…' : 'Cerrar sesión'}
-        </button>
+        <div className="bets-header__actions">
+          <BankrollSwitcher />
+          <button className="ghost" onClick={() => { void handleSignOut() }} disabled={isAuthActionPending}>
+            {isAuthActionPending ? 'Saliendo…' : 'Cerrar sesión'}
+          </button>
+        </div>
       </header>
 
       <nav className="bets-nav" aria-label="Secciones del panel">
@@ -184,8 +192,6 @@ export function BetsView() {
             onSubmit={handleCreateBet}
             isSubmitting={createMutation.isPending}
             lastError={createMutation.error?.message ?? null}
-            bankrolls={bankrolls}
-            isLoadingBankrolls={isLoadingBankrolls}
           />
           <CsvImportCard
             onSuccess={() => {

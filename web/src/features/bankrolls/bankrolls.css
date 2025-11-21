@@ -1,0 +1,105 @@
+.bankroll-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bankroll-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.bankroll-card {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bankroll-card h2 {
+  margin: 0.15rem 0 0;
+}
+
+.bankroll-card dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.bankroll-card dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.bankroll-card dd {
+  margin: 0.15rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.bankroll-card button {
+  align-self: flex-start;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1.5rem;
+  background: #22d3ee;
+  font-weight: 700;
+  color: #082f49;
+  cursor: pointer;
+}
+
+.bankroll-state {
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.bankroll-state button {
+  margin-top: 1rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.2rem;
+  background: rgba(34, 211, 238, 0.15);
+  color: #22d3ee;
+  cursor: pointer;
+}
+
+.bankroll-switcher {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.bankroll-switcher__row {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.bankroll-switcher select {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 0.35rem 0.9rem;
+  background: rgba(2, 6, 23, 0.4);
+  color: inherit;
+}
+
+.bankroll-switcher button {
+  border: none;
+  border-radius: 999px;
+  width: 2.2rem;
+  height: 2.2rem;
+  background: rgba(148, 163, 184, 0.2);
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
