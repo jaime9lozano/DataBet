@@ -82,6 +82,7 @@ export function BetsView() {
   const { activeBankroll } = useBankroll()
   const queryClient = useQueryClient()
   const isMobile = useMediaQuery('(max-width: 900px)')
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [activeScreen, setActiveScreen] = useState<BetsScreen>('overview')
   const [statusFilter, setStatusFilter] = useState<BetStatus | ''>('')
   const [from, setFrom] = useState('')
@@ -98,11 +99,20 @@ export function BetsView() {
   const [selectedViewId, setSelectedViewId] = useState('')
   const [editingBet, setEditingBet] = useState<Bet | null>(null)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
+  const [areFiltersOpen, setAreFiltersOpen] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     window.localStorage.setItem(FILTER_VIEWS_KEY, JSON.stringify(savedViews))
   }, [savedViews])
+
+  useEffect(() => {
+    if (isDesktop) {
+      setAreFiltersOpen(true)
+    } else {
+      setAreFiltersOpen(false)
+    }
+  }, [isDesktop])
 
   const resetSavedViewSelection = () => setSelectedViewId('')
 
@@ -358,35 +368,69 @@ export function BetsView() {
 
       {shouldShowScreen('overview') && (
         <>
-          <FiltersBar
-            statusValue={statusFilter}
-            onStatusChange={handleStatusFilterChange}
-            fromValue={from}
-            toValue={to}
-            onDateChange={handleDateChange}
-            isLoading={isFetching || isLoading}
-            searchValue={search}
-            onSearchChange={handleSearchChange}
-            tagOptions={tagOptions}
-            selectedTags={selectedTags}
-            onTagsChange={handleTagsChange}
-            groupingValue={grouping}
-            onGroupingChange={handleGroupingChange}
-            stakeMinValue={stakeMin}
-            stakeMaxValue={stakeMax}
-            onStakeRangeChange={handleStakeRangeChange}
-            oddsMinValue={oddsMin}
-            oddsMaxValue={oddsMax}
-            onOddsRangeChange={handleOddsRangeChange}
-            bookmakerValue={bookmakerFilter}
-            bookmakerOptions={bookmakers}
-            onBookmakerChange={handleBookmakerChange}
-            savedViews={savedViews}
-            selectedViewId={selectedViewId}
-            onSelectSavedView={handleSelectSavedView}
-            onSaveView={handleSaveFilterView}
-            onDeleteView={handleDeleteSavedView}
-          />
+          <section className="bets-view__filters" aria-label="Panel de filtros">
+            {!isDesktop && (
+              <div className="bets-view__filters-header">
+                <div>
+                  <p className="eyebrow">Filtros</p>
+                  <p className="subhead">Ajusta tu vista como en una app pro</p>
+                </div>
+                <button
+                  type="button"
+                  className="bets-view__filters-toggle"
+                  onClick={() => setAreFiltersOpen((prev) => !prev)}
+                  aria-expanded={areFiltersOpen}
+                >
+                  {areFiltersOpen ? 'Ocultar' : 'Mostrar'}
+                </button>
+              </div>
+            )}
+
+            {(areFiltersOpen || isDesktop) && (
+              <div className={['bets-view__filters-panel', isDesktop ? 'is-desktop' : ''].join(' ').trim()}>
+                {!isDesktop && (
+                  <div className="bets-view__filters-panel-header">
+                    <div>
+                      <p className="eyebrow">Vista rápida</p>
+                      <h2>Filtros avanzados</h2>
+                    </div>
+                    <button type="button" onClick={() => setAreFiltersOpen(false)}>
+                      Hecho
+                    </button>
+                  </div>
+                )}
+                <FiltersBar
+                  statusValue={statusFilter}
+                  onStatusChange={handleStatusFilterChange}
+                  fromValue={from}
+                  toValue={to}
+                  onDateChange={handleDateChange}
+                  isLoading={isFetching || isLoading}
+                  searchValue={search}
+                  onSearchChange={handleSearchChange}
+                  tagOptions={tagOptions}
+                  selectedTags={selectedTags}
+                  onTagsChange={handleTagsChange}
+                  groupingValue={grouping}
+                  onGroupingChange={handleGroupingChange}
+                  stakeMinValue={stakeMin}
+                  stakeMaxValue={stakeMax}
+                  onStakeRangeChange={handleStakeRangeChange}
+                  oddsMinValue={oddsMin}
+                  oddsMaxValue={oddsMax}
+                  onOddsRangeChange={handleOddsRangeChange}
+                  bookmakerValue={bookmakerFilter}
+                  bookmakerOptions={bookmakers}
+                  onBookmakerChange={handleBookmakerChange}
+                  savedViews={savedViews}
+                  selectedViewId={selectedViewId}
+                  onSelectSavedView={handleSelectSavedView}
+                  onSaveView={handleSaveFilterView}
+                  onDeleteView={handleDeleteSavedView}
+                />
+              </div>
+            )}
+          </section>
 
           <DashboardStats bets={bets} isLoading={isLoading} grouping={grouping} />
         </>
