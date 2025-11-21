@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient'
-import type { Bet, BetFilters, NewBet } from '../types'
+import type { Bet, BetFilters, NewBet, UpdateBetPayload } from '../types'
 
 function generateBetId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -46,6 +46,17 @@ export async function createBet(payload: NewBet): Promise<Bet> {
   const { data, error } = await supabase
     .from('bets')
     .insert(payloadWithId)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Bet
+}
+
+export async function updateBet(id: string, payload: UpdateBetPayload): Promise<Bet> {
+  const { data, error } = await supabase
+    .from('bets')
+    .update(payload)
+    .eq('id', id)
     .select()
     .single()
   if (error) throw error

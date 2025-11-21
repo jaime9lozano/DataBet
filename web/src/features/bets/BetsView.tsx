@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSession } from '../../lib/session'
 import type { Bet, BetFilters, BetStatus, NewBet, PeriodGrouping } from '../../lib/types'
-import { fetchBets, createBet, deleteBet, fetchTags } from '../../lib/services/bets'
+import { fetchBets, createBet, deleteBet, fetchTags, updateBet } from '../../lib/services/bets'
 import { DashboardStats } from './components/DashboardStats'
 import { FiltersBar } from './components/FiltersBar'
 import './bets.css'
@@ -13,6 +13,8 @@ import { useNotifications } from '../../lib/notifications'
 import { TopLoader } from '../../components/TopLoader'
 import { useBankroll } from '../../lib/bankroll'
 import { BankrollSwitcher } from '../bankrolls/BankrollSwitcher'
+import { BetEditor } from './components/BetEditor'
+import type { UpdateBetPayload } from '../../lib/types'
 
 type BetsScreen = 'overview' | 'create' | 'history'
 
@@ -48,6 +50,8 @@ export function BetsView() {
   const [search, setSearch] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [grouping, setGrouping] = useState<PeriodGrouping>('month')
+  const [editingBet, setEditingBet] = useState<Bet | null>(null)
+  const [isEditorOpen, setIsEditorOpen] = useState(false)
 
   const filters = useMemo<BetFilters>(() => {
     return {
@@ -98,6 +102,15 @@ export function BetsView() {
     onError: (error) => push('error', error.message),
   })
 
+  const updateMutation = useMutation<Bet, Error, { id: string; payload: UpdateBetPayload }>({
+    mutationFn: ({ id, payload }) => updateBet(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bets'] })
+      push('success', 'Apuesta actualizada')
+    },
+    onError: (error) => push('error', error.message),
+  })
+
   const handleCreateBet = async (payload: NewBet) => {
     if (!activeBankroll) {
       push('error', 'Selecciona un bankroll antes de registrar apuestas')
@@ -108,6 +121,22 @@ export function BetsView() {
 
   const handleDeleteBet = async (betId: string) => {
     await deleteMutation.mutateAsync(betId)
+  }
+
+  const handleOpenEditor = (bet: Bet) => {
+    setEditingBet(bet)
+    setIsEditorOpen(true)
+  }
+
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false)
+    setEditingBet(null)
+  }
+
+  const handleUpdateBet = async (payload: UpdateBetPayload) => {
+    if (!editingBet) return
+    await updateMutation.mutateAsync({ id: editingBet.id, payload })
+    handleCloseEditor()
   }
 
   const handleSignOut = async () => {
@@ -204,8 +233,22 @@ export function BetsView() {
       )}
 
       {shouldShowScreen('history') && (
-        <BetList bets={bets} isLoading={isLoading} onDelete={handleDeleteBet} deletingId={deleteMutation.variables ?? undefined} />
+        <BetList
+          bets={bets}
+          isLoading={isLoading}
+          onDelete={handleDeleteBet}
+          deletingId={deleteMutation.variables ?? undefined}
+          onEdit={handleOpenEditor}
+        />
       )}
+
+      <BetEditor
+        bet={editingBet}
+        isOpen={isEditorOpen}
+        onClose={handleCloseEditor}
+        onSubmit={handleUpdateBet}
+        isSubmitting={updateMutation.isPending}
+      />
     </div>
   )
 }

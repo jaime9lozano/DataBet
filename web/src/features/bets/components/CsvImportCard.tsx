@@ -15,6 +15,7 @@ function buildFunctionsUrl() {
 export function CsvImportCard({ onSuccess, onError }: CsvImportCardProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [summary, setSummary] = useState<Record<string, unknown> | null>(null)
 
   const handleUpload = async (file: File) => {
     const endpoint = `${buildFunctionsUrl()}/csv-import`
@@ -23,6 +24,7 @@ export function CsvImportCard({ onSuccess, onError }: CsvImportCardProps) {
 
     setIsUploading(true)
     setMessage(null)
+    setSummary(null)
 
     try {
       const { data } = await supabase.auth.getSession()
@@ -42,7 +44,8 @@ export function CsvImportCard({ onSuccess, onError }: CsvImportCardProps) {
         throw new Error(payload.error ?? 'Error importando CSV')
       }
 
-      setMessage(`Importadas ${payload.imported} apuestas`)
+      setMessage(`Importadas ${payload.imported ?? 0} apuestas`)
+      setSummary(payload)
       onSuccess()
     } catch (error) {
       console.error('CSV upload error', error)
@@ -69,6 +72,16 @@ export function CsvImportCard({ onSuccess, onError }: CsvImportCardProps) {
         <span>{isUploading ? 'Subiendo…' : 'Selecciona CSV'}</span>
       </label>
       {message && <p className="muted">{message}</p>}
+      {summary && (
+        <dl className="import-summary">
+          {Object.entries(summary).map(([key, value]) => (
+            <div key={key}>
+              <dt>{key}</dt>
+              <dd>{String(value)}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
     </article>
   )
 }

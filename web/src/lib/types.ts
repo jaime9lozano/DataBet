@@ -49,6 +49,17 @@ export interface Bankroll {
   target_stake_unit: number
 }
 
+export interface UpdateBetPayload {
+  stake?: number
+  odds?: number
+  status?: BetStatus
+  bet_type?: BetType
+  settled_at?: string | null
+  result_amount?: number | null
+  notes?: string | null
+  tags?: string[] | null
+}
+
 export interface BetFilters {
   status?: BetStatus
   from?: string

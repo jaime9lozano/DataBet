@@ -319,6 +319,53 @@
   grid-column: 1 / -1;
 }
 
+.bet-editor {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.75);
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: flex-end;
+  transition: opacity 0.2s ease;
+  z-index: 30;
+}
+
+.bet-editor.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bet-editor__panel {
+  width: min(420px, 100%);
+  background: rgba(15, 23, 42, 0.95);
+  border-left: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.bet-editor__panel header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.bet-editor__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.bet-editor__actions button[type='submit'] {
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.4rem;
+  background: #22d3ee;
+  color: #082f49;
+  font-weight: 700;
+}
+
 .upload input {
   display: none;
 }
@@ -331,6 +378,25 @@
   border-radius: 0.75rem;
   padding: 0.75rem;
   cursor: pointer;
+}
+
+.import-summary {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.import-summary dt {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.import-summary dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
 }
 
 .bets-table {

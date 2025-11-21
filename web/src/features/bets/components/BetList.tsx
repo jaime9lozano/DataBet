@@ -7,6 +7,7 @@ interface BetListProps {
   isLoading: boolean
   onDelete: (betId: string) => Promise<void>
   deletingId?: string
+  onEdit: (bet: Bet) => void
 }
 
 const currencyFormatter = new Intl.NumberFormat('es-ES', {
@@ -15,7 +16,7 @@ const currencyFormatter = new Intl.NumberFormat('es-ES', {
   maximumFractionDigits: 2,
 })
 
-export function BetList({ bets, isLoading, onDelete, deletingId }: BetListProps) {
+export function BetList({ bets, isLoading, onDelete, deletingId, onEdit }: BetListProps) {
   if (isLoading) {
     return (
       <section className="bets-table">
@@ -57,7 +58,10 @@ export function BetList({ bets, isLoading, onDelete, deletingId }: BetListProps)
                 </span>
               </td>
               <td>{bet.result_amount ? currencyFormatter.format(Number(bet.result_amount)) : '—'}</td>
-              <td>
+              <td className="actions-cell">
+                <button className="ghost" onClick={() => onEdit(bet)}>
+                  Editar
+                </button>
                 <button className="ghost" onClick={() => onDelete(bet.id)} disabled={deletingId === bet.id}>
                   {deletingId === bet.id ? 'Eliminando…' : 'Eliminar'}
                 </button>
