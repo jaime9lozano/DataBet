@@ -30,7 +30,9 @@ export async function signUpWithProfile(payload: RegisterPayload): Promise<Sessi
 
 export async function signOut(): Promise<void> {
   const { error } = await supabase.auth.signOut()
-  if (error) throw error
+  if (error && error.name !== 'AuthSessionMissingError') {
+    throw error
+  }
 }
 
 export async function getCurrentUser(): Promise<SessionUser | null> {
