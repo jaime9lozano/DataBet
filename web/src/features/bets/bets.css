@@ -111,6 +111,22 @@
   color: rgba(226, 232, 240, 0.7);
 }
 
+.filters-saved {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.filters-saved button {
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: rgba(34, 211, 238, 0.2);
+  color: #22d3ee;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

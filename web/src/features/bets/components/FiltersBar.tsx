@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import type { BetStatus, PeriodGrouping } from '../../../lib/types'
 
 interface FiltersBarProps {
@@ -15,6 +15,20 @@ interface FiltersBarProps {
   onTagsChange: (next: string[]) => void
   groupingValue: PeriodGrouping
   onGroupingChange: (value: PeriodGrouping) => void
+  stakeMinValue: string
+  stakeMaxValue: string
+  onStakeRangeChange: (min: string, max: string) => void
+  oddsMinValue: string
+  oddsMaxValue: string
+  onOddsRangeChange: (min: string, max: string) => void
+  bookmakerValue: string
+  bookmakerOptions: Array<{ id: string; name: string; country: string | null }>
+  onBookmakerChange: (id: string) => void
+  savedViews: Array<{ id: string; name: string }>
+  selectedViewId: string
+  onSelectSavedView: (id: string) => void
+  onSaveView: (name: string) => void
+  onDeleteView: (id: string) => void
 }
 
 const STATUS_OPTIONS: { label: string; value: BetStatus | '' }[] = [
@@ -46,7 +60,22 @@ export function FiltersBar({
   onTagsChange,
   groupingValue,
   onGroupingChange,
+  stakeMinValue,
+  stakeMaxValue,
+  onStakeRangeChange,
+  oddsMinValue,
+  oddsMaxValue,
+  onOddsRangeChange,
+  bookmakerValue,
+  bookmakerOptions,
+  onBookmakerChange,
+  savedViews,
+  selectedViewId,
+  onSelectSavedView,
+  onSaveView,
+  onDeleteView,
 }: FiltersBarProps) {
+  const [viewName, setViewName] = useState('')
   const handleTagsChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const next = Array.from(event.target.selectedOptions).map((option) => option.value)
     onTagsChange(next)
@@ -69,6 +98,46 @@ export function FiltersBar({
         </select>
       </label>
       <label>
+        Stake mínimo
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={stakeMinValue}
+          onChange={(event) => onStakeRangeChange(event.target.value, stakeMaxValue)}
+        />
+      </label>
+      <label>
+        Stake máximo
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={stakeMaxValue}
+          onChange={(event) => onStakeRangeChange(stakeMinValue, event.target.value)}
+        />
+      </label>
+      <label>
+        Cuota mínima
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={oddsMinValue}
+          onChange={(event) => onOddsRangeChange(event.target.value, oddsMaxValue)}
+        />
+      </label>
+      <label>
+        Cuota máxima
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={oddsMaxValue}
+          onChange={(event) => onOddsRangeChange(oddsMinValue, event.target.value)}
+        />
+      </label>
+      <label>
         Desde
         <input type="date" value={fromValue} onChange={(event) => onDateChange(event.target.value, toValue)} />
       </label>
@@ -89,6 +158,18 @@ export function FiltersBar({
         <span className="filters-hint">Mantén Cmd/Ctrl para multi selección</span>
       </label>
       <label>
+        Bookmaker
+        <select value={bookmakerValue} onChange={(event) => onBookmakerChange(event.target.value)}>
+          <option value="">Todos</option>
+          {bookmakerOptions.map((bookmaker) => (
+            <option key={bookmaker.id} value={bookmaker.id}>
+              {bookmaker.name}
+              {bookmaker.country ? ` · ${bookmaker.country}` : ''}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
         Agrupar métricas
         <select value={groupingValue} onChange={(event) => onGroupingChange(event.target.value as PeriodGrouping)}>
           {GROUPING_OPTIONS.map((option) => (
@@ -98,6 +179,37 @@ export function FiltersBar({
           ))}
         </select>
       </label>
+      <div className="filters-saved full">
+        <label>
+          Vistas guardadas
+          <select value={selectedViewId} onChange={(event) => onSelectSavedView(event.target.value)}>
+            <option value="">Selecciona una vista</option>
+            {savedViews.map((view) => (
+              <option key={view.id} value={view.id}>
+                {view.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="button" className="ghost" onClick={() => onDeleteView(selectedViewId)} disabled={!selectedViewId}>
+          Eliminar vista
+        </button>
+      </div>
+      <div className="filters-saved full">
+        <input
+          type="text"
+          value={viewName}
+          onChange={(event) => setViewName(event.target.value)}
+          placeholder="Nombre para guardar filtros"
+        />
+        <button type="button" onClick={() => {
+          if (!viewName.trim()) return
+          onSaveView(viewName.trim())
+          setViewName('')
+        }}>
+          Guardar vista
+        </button>
+      </div>
       {isLoading && <span className="filters-loader">Actualizando…</span>}
     </section>
   )

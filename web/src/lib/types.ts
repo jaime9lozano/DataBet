@@ -67,6 +67,11 @@ export interface BetFilters {
   search?: string
   tags?: string[]
   bankrollId?: string
+  stakeMin?: number
+  stakeMax?: number
+  oddsMin?: number
+  oddsMax?: number
+  bookmakerId?: string
 }
 
 export interface SessionUser {

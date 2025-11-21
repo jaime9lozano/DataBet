@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSession } from '../../lib/session'
-import type { Bet, BetFilters, BetStatus, NewBet, PeriodGrouping } from '../../lib/types'
+import type { Bet, BetFilters, BetStatus, NewBet, PeriodGrouping, UpdateBetPayload } from '../../lib/types'
 import { fetchBets, createBet, deleteBet, fetchTags, updateBet } from '../../lib/services/bets'
+import { fetchBookmakers, type Bookmaker } from '../../lib/services/bookmakers'
 import { DashboardStats } from './components/DashboardStats'
 import { FiltersBar } from './components/FiltersBar'
 import './bets.css'
@@ -14,9 +15,47 @@ import { TopLoader } from '../../components/TopLoader'
 import { useBankroll } from '../../lib/bankroll'
 import { BankrollSwitcher } from '../bankrolls/BankrollSwitcher'
 import { BetEditor } from './components/BetEditor'
-import type { UpdateBetPayload } from '../../lib/types'
 
 type BetsScreen = 'overview' | 'create' | 'history'
+
+interface SavedFilterPayload {
+  status: BetStatus | ''
+  from: string
+  to: string
+  search: string
+  tags: string[]
+  grouping: PeriodGrouping
+  stakeMin: string
+  stakeMax: string
+  oddsMin: string
+  oddsMax: string
+  bookmakerId: string
+}
+
+interface SavedFilterView {
+  id: string
+  name: string
+  payload: SavedFilterPayload
+}
+
+const FILTER_VIEWS_KEY = 'databet:saved-filter-views'
+
+function loadSavedFilterViews(): SavedFilterView[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = window.localStorage.getItem(FILTER_VIEWS_KEY)
+    return raw ? (JSON.parse(raw) as SavedFilterView[]) : []
+  } catch {
+    return []
+  }
+}
+
+function generateViewId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `view_${Date.now()}_${Math.random().toString(16).slice(2)}`
+}
 
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => {
@@ -50,8 +89,119 @@ export function BetsView() {
   const [search, setSearch] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [grouping, setGrouping] = useState<PeriodGrouping>('month')
+  const [stakeMin, setStakeMin] = useState('')
+  const [stakeMax, setStakeMax] = useState('')
+  const [oddsMin, setOddsMin] = useState('')
+  const [oddsMax, setOddsMax] = useState('')
+  const [bookmakerFilter, setBookmakerFilter] = useState('')
+  const [savedViews, setSavedViews] = useState<SavedFilterView[]>(() => loadSavedFilterViews())
+  const [selectedViewId, setSelectedViewId] = useState('')
   const [editingBet, setEditingBet] = useState<Bet | null>(null)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(FILTER_VIEWS_KEY, JSON.stringify(savedViews))
+  }, [savedViews])
+
+  const resetSavedViewSelection = () => setSelectedViewId('')
+
+  const handleStatusFilterChange = (value: BetStatus | '') => {
+    resetSavedViewSelection()
+    setStatusFilter(value)
+  }
+
+  const handleDateChange = (nextFrom: string, nextTo: string) => {
+    resetSavedViewSelection()
+    setFrom(nextFrom)
+    setTo(nextTo)
+  }
+
+  const handleSearchChange = (value: string) => {
+    resetSavedViewSelection()
+    setSearch(value)
+  }
+
+  const handleTagsChange = (nextTags: string[]) => {
+    resetSavedViewSelection()
+    setSelectedTags(nextTags)
+  }
+
+  const handleGroupingChange = (value: PeriodGrouping) => {
+    resetSavedViewSelection()
+    setGrouping(value)
+  }
+
+  const handleStakeRangeChange = (min: string, max: string) => {
+    resetSavedViewSelection()
+    setStakeMin(min)
+    setStakeMax(max)
+  }
+
+  const handleOddsRangeChange = (min: string, max: string) => {
+    resetSavedViewSelection()
+    setOddsMin(min)
+    setOddsMax(max)
+  }
+
+  const handleBookmakerChange = (id: string) => {
+    resetSavedViewSelection()
+    setBookmakerFilter(id)
+  }
+
+  const buildSavedPayload = (): SavedFilterPayload => ({
+    status: statusFilter,
+    from,
+    to,
+    search,
+    tags: selectedTags,
+    grouping,
+    stakeMin,
+    stakeMax,
+    oddsMin,
+    oddsMax,
+    bookmakerId: bookmakerFilter,
+  })
+
+  const handleSaveFilterView = (name: string) => {
+    const view: SavedFilterView = {
+      id: generateViewId(),
+      name,
+      payload: buildSavedPayload(),
+    }
+    setSavedViews((prev) => [...prev, view])
+    setSelectedViewId(view.id)
+    push('success', 'Vista guardada')
+  }
+
+  const handleSelectSavedView = (id: string) => {
+    if (!id) {
+      setSelectedViewId('')
+      return
+    }
+    const view = savedViews.find((entry) => entry.id === id)
+    if (!view) return
+    setSelectedViewId(id)
+    setStatusFilter(view.payload.status ?? '')
+    setFrom(view.payload.from ?? '')
+    setTo(view.payload.to ?? '')
+    setSearch(view.payload.search ?? '')
+    setSelectedTags(view.payload.tags ?? [])
+    setGrouping(view.payload.grouping ?? 'month')
+    setStakeMin(view.payload.stakeMin ?? '')
+    setStakeMax(view.payload.stakeMax ?? '')
+    setOddsMin(view.payload.oddsMin ?? '')
+    setOddsMax(view.payload.oddsMax ?? '')
+    setBookmakerFilter(view.payload.bookmakerId ?? '')
+  }
+
+  const handleDeleteSavedView = (id: string) => {
+    if (!id) return
+    setSavedViews((prev) => prev.filter((entry) => entry.id !== id))
+    if (selectedViewId === id) {
+      setSelectedViewId('')
+    }
+  }
 
   const filters = useMemo<BetFilters>(() => {
     return {
@@ -61,8 +211,13 @@ export function BetsView() {
       to: to ? new Date(to).toISOString() : undefined,
       search: search ? search.trim() : undefined,
       tags: selectedTags.length ? selectedTags : undefined,
+      stakeMin: stakeMin ? Number(stakeMin) : undefined,
+      stakeMax: stakeMax ? Number(stakeMax) : undefined,
+      oddsMin: oddsMin ? Number(oddsMin) : undefined,
+      oddsMax: oddsMax ? Number(oddsMax) : undefined,
+      bookmakerId: bookmakerFilter || undefined,
     }
-  }, [activeBankroll?.id, statusFilter, from, to, search, selectedTags])
+  }, [activeBankroll?.id, statusFilter, from, to, search, selectedTags, stakeMin, stakeMax, oddsMin, oddsMax, bookmakerFilter])
 
   const { data: bets = [], isFetching, isLoading } = useQuery<Bet[]>({
     queryKey: [
@@ -73,6 +228,11 @@ export function BetsView() {
       filters.to ?? 'none',
       filters.search ?? 'none',
       (filters.tags ?? []).join(','),
+      filters.stakeMin ?? 'stake-min-none',
+      filters.stakeMax ?? 'stake-max-none',
+      filters.oddsMin ?? 'odds-min-none',
+      filters.oddsMax ?? 'odds-max-none',
+      filters.bookmakerId ?? 'no-bookmaker',
     ],
     queryFn: () => fetchBets(filters),
     enabled: Boolean(filters.bankrollId),
@@ -82,6 +242,12 @@ export function BetsView() {
     queryKey: ['bet-tags'],
     queryFn: fetchTags,
     staleTime: 1000 * 60 * 10,
+  })
+
+  const { data: bookmakers = [] } = useQuery<Bookmaker[]>({
+    queryKey: ['bookmakers'],
+    queryFn: fetchBookmakers,
+    staleTime: 1000 * 60 * 30,
   })
 
   const createMutation = useMutation<Bet, Error, NewBet>({
@@ -194,21 +360,32 @@ export function BetsView() {
         <>
           <FiltersBar
             statusValue={statusFilter}
-            onStatusChange={(value) => setStatusFilter(value)}
+            onStatusChange={handleStatusFilterChange}
             fromValue={from}
             toValue={to}
-            onDateChange={(nextFrom, nextTo) => {
-              setFrom(nextFrom)
-              setTo(nextTo)
-            }}
+            onDateChange={handleDateChange}
             isLoading={isFetching || isLoading}
             searchValue={search}
-            onSearchChange={setSearch}
+            onSearchChange={handleSearchChange}
             tagOptions={tagOptions}
             selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
+            onTagsChange={handleTagsChange}
             groupingValue={grouping}
-            onGroupingChange={setGrouping}
+            onGroupingChange={handleGroupingChange}
+            stakeMinValue={stakeMin}
+            stakeMaxValue={stakeMax}
+            onStakeRangeChange={handleStakeRangeChange}
+            oddsMinValue={oddsMin}
+            oddsMaxValue={oddsMax}
+            onOddsRangeChange={handleOddsRangeChange}
+            bookmakerValue={bookmakerFilter}
+            bookmakerOptions={bookmakers}
+            onBookmakerChange={handleBookmakerChange}
+            savedViews={savedViews}
+            selectedViewId={selectedViewId}
+            onSelectSavedView={handleSelectSavedView}
+            onSaveView={handleSaveFilterView}
+            onDeleteView={handleDeleteSavedView}
           />
 
           <DashboardStats bets={bets} isLoading={isLoading} grouping={grouping} />

@@ -32,6 +32,21 @@ export async function fetchBets(filters: BetFilters = {}): Promise<Bet[]> {
   if (filters.tags?.length) {
     query = query.contains('tags', filters.tags)
   }
+  if (typeof filters.stakeMin === 'number') {
+    query = query.gte('stake', filters.stakeMin)
+  }
+  if (typeof filters.stakeMax === 'number') {
+    query = query.lte('stake', filters.stakeMax)
+  }
+  if (typeof filters.oddsMin === 'number') {
+    query = query.gte('odds', filters.oddsMin)
+  }
+  if (typeof filters.oddsMax === 'number') {
+    query = query.lte('odds', filters.oddsMax)
+  }
+  if (filters.bookmakerId) {
+    query = query.eq('bookmaker_id', filters.bookmakerId)
+  }
 
   const { data, error } = await query
   if (error) throw error
