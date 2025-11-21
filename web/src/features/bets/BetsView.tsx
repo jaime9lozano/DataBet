@@ -373,7 +373,7 @@ export function BetsView() {
               <div className="bets-view__filters-header">
                 <div>
                   <p className="eyebrow">Filtros</p>
-                  <p className="subhead">Ajusta tu vista como en una app pro</p>
+                  <p className="subhead">Ajusta tu vista con los filtros disponibles</p>
                 </div>
                 <button
                   type="button"
