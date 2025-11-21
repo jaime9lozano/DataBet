@@ -1,11 +1,12 @@
 [build]
   base = "web"
-  command = "npm ci && npm run build"
+  command = "npm ci --omit=optional && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS = "--loglevel=error"
+  NPM_CONFIG_OPTIONAL = "false"
 
 [[redirects]]
   from = "/*"
