@@ -57,3 +57,23 @@
   margin: 0;
   font-size: 0.95rem;
 }
+
+.auth-switch {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.ghost-link {
+  border: none;
+  background: transparent;
+  color: #22d3ee;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.ghost-link:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

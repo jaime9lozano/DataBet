@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react'
-import type { SessionUser } from './types'
-import { getCurrentUser, onAuthStateChange, signInWithPassword, signOut as supabaseSignOut } from './services/session'
+import type { RegisterPayload, SessionUser } from './types'
+import { getCurrentUser, onAuthStateChange, signInWithPassword, signOut as supabaseSignOut, signUpWithProfile } from './services/session'
 
 export type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated'
 
@@ -10,6 +10,7 @@ interface SessionContextValue {
   authError: string | null
   isAuthActionPending: boolean
   signIn: (email: string, password: string) => Promise<void>
+  signUp: (payload: RegisterPayload) => Promise<void>
   signOut: () => Promise<void>
   clearAuthError: () => void
 }
@@ -66,6 +67,22 @@ export function SessionProvider({ children }: PropsWithChildren) {
     }
   }
 
+  const signUp = async (payload: RegisterPayload) => {
+    setIsAuthActionPending(true)
+    setAuthError(null)
+    try {
+      const registered = await signUpWithProfile(payload)
+      setUser(registered)
+      setStatus('authenticated')
+    } catch (error) {
+      console.error('Sign up error', error)
+      setAuthError(error instanceof Error ? error.message : 'No se pudo crear la cuenta')
+      throw error
+    } finally {
+      setIsAuthActionPending(false)
+    }
+  }
+
   const signOut = async () => {
     setIsAuthActionPending(true)
     try {
@@ -84,7 +101,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const clearAuthError = () => setAuthError(null)
 
   const value = useMemo(
-    () => ({ user, status, authError, isAuthActionPending, signIn, signOut, clearAuthError }),
+    () => ({ user, status, authError, isAuthActionPending, signIn, signUp, signOut, clearAuthError }),
     [user, status, authError, isAuthActionPending],
   )
 

@@ -1,10 +1,31 @@
 import { supabase } from '../supabaseClient'
-import type { SessionUser } from '../types'
+import type { RegisterPayload, SessionUser } from '../types'
 
 export async function signInWithPassword(email: string, password: string): Promise<SessionUser> {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) throw error
   return { email: data.user?.email ?? email }
+}
+
+export async function signUpWithProfile(payload: RegisterPayload): Promise<SessionUser> {
+  const { data, error } = await supabase.auth.signUp({ email: payload.email, password: payload.password })
+  if (error) throw error
+
+  const userId = data.user?.id
+  if (!userId) {
+    throw new Error('No se pudo recuperar el usuario creado')
+  }
+
+  const { error: profileError } = await supabase.from('app_users').insert({
+    auth_uid: userId,
+    display_name: payload.displayName,
+  })
+
+  if (profileError) {
+    throw profileError
+  }
+
+  return { email: data.user?.email ?? payload.email }
 }
 
 export async function signOut(): Promise<void> {

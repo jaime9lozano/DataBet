@@ -51,3 +51,9 @@ export interface BetFilters {
 export interface SessionUser {
   email: string
 }
+
+export interface RegisterPayload {
+  email: string
+  password: string
+  displayName: string
+}
