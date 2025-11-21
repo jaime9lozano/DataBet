@@ -1,6 +1,13 @@
 import { supabase } from '../supabaseClient'
 import type { Bet, BetFilters, NewBet } from '../types'
 
+function generateBetId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `bet_${Date.now()}_${Math.random().toString(16).slice(2)}`
+}
+
 export async function fetchBets(filters: BetFilters = {}): Promise<Bet[]> {
   let query = supabase
     .from('bets')
@@ -29,9 +36,13 @@ export async function fetchBets(filters: BetFilters = {}): Promise<Bet[]> {
 }
 
 export async function createBet(payload: NewBet): Promise<Bet> {
+  const payloadWithId = {
+    id: payload.id ?? generateBetId(),
+    ...payload,
+  }
   const { data, error } = await supabase
     .from('bets')
-    .insert(payload)
+    .insert(payloadWithId)
     .select()
     .single()
   if (error) throw error

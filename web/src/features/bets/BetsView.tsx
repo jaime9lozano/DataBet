@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSession } from '../../lib/session'
-import type { Bet, BetFilters, BetStatus, NewBet, PeriodGrouping } from '../../lib/types'
+import type { Bankroll, Bet, BetFilters, BetStatus, NewBet, PeriodGrouping } from '../../lib/types'
 import { fetchBets, createBet, deleteBet, fetchTags } from '../../lib/services/bets'
+import { fetchBankrolls } from '../../lib/services/bankrolls'
 import { DashboardStats } from './components/DashboardStats'
 import { FiltersBar } from './components/FiltersBar'
 import './bets.css'
@@ -12,10 +13,33 @@ import { BetList } from './components/BetList'
 import { useNotifications } from '../../lib/notifications'
 import { TopLoader } from '../../components/TopLoader'
 
+type BetsScreen = 'overview' | 'create' | 'history'
+
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+    return window.matchMedia(query).matches
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
+
+    const mediaQuery = window.matchMedia(query)
+    const handleChange = () => setMatches(mediaQuery.matches)
+    handleChange()
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [query])
+
+  return matches
+}
+
 export function BetsView() {
   const { user, signOut, isAuthActionPending } = useSession()
   const { push } = useNotifications()
   const queryClient = useQueryClient()
+  const isMobile = useMediaQuery('(max-width: 900px)')
+  const [activeScreen, setActiveScreen] = useState<BetsScreen>('overview')
   const [statusFilter, setStatusFilter] = useState<BetStatus | ''>('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -49,6 +73,12 @@ export function BetsView() {
     queryKey: ['bet-tags'],
     queryFn: fetchTags,
     staleTime: 1000 * 60 * 10,
+  })
+
+  const { data: bankrolls = [], isLoading: isLoadingBankrolls } = useQuery<Bankroll[]>({
+    queryKey: ['bankrolls'],
+    queryFn: fetchBankrolls,
+    staleTime: 1000 * 60 * 5,
   })
 
   const createMutation = useMutation<Bet, Error, NewBet>({
@@ -88,6 +118,14 @@ export function BetsView() {
     }
   }
 
+  const screens: Array<{ id: BetsScreen; label: string }> = [
+    { id: 'overview', label: 'Resumen' },
+    { id: 'create', label: 'Registrar' },
+    { id: 'history', label: 'Historial' },
+  ]
+
+  const shouldShowScreen = (screen: BetsScreen) => (!isMobile || activeScreen === screen)
+
   return (
     <div className="bets-shell">
       <TopLoader active={isFetching && !isLoading} />
@@ -102,39 +140,66 @@ export function BetsView() {
         </button>
       </header>
 
-      <FiltersBar
-        statusValue={statusFilter}
-        onStatusChange={(value) => setStatusFilter(value)}
-        fromValue={from}
-        toValue={to}
-        onDateChange={(nextFrom, nextTo) => {
-          setFrom(nextFrom)
-          setTo(nextTo)
-        }}
-        isLoading={isFetching || isLoading}
-        searchValue={search}
-        onSearchChange={setSearch}
-        tagOptions={tagOptions}
-        selectedTags={selectedTags}
-        onTagsChange={setSelectedTags}
-        groupingValue={grouping}
-        onGroupingChange={setGrouping}
-      />
+      <nav className="bets-nav" aria-label="Secciones del panel">
+        {screens.map((screen) => (
+          <button
+            key={screen.id}
+            type="button"
+            className={['bets-nav__button', activeScreen === screen.id ? 'is-active' : ''].join(' ').trim()}
+            onClick={() => setActiveScreen(screen.id)}
+          >
+            {screen.label}
+          </button>
+        ))}
+      </nav>
 
-      <DashboardStats bets={bets} isLoading={isLoading} grouping={grouping} />
+      {shouldShowScreen('overview') && (
+        <>
+          <FiltersBar
+            statusValue={statusFilter}
+            onStatusChange={(value) => setStatusFilter(value)}
+            fromValue={from}
+            toValue={to}
+            onDateChange={(nextFrom, nextTo) => {
+              setFrom(nextFrom)
+              setTo(nextTo)
+            }}
+            isLoading={isFetching || isLoading}
+            searchValue={search}
+            onSearchChange={setSearch}
+            tagOptions={tagOptions}
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+            groupingValue={grouping}
+            onGroupingChange={setGrouping}
+          />
 
-      <section className="two-column">
-        <AddBetForm onSubmit={handleCreateBet} isSubmitting={createMutation.isPending} lastError={createMutation.error?.message ?? null} />
-        <CsvImportCard
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ['bets'] })
-            push('success', 'Importación completada')
-          }}
-          onError={(message) => push('error', message)}
-        />
-      </section>
+          <DashboardStats bets={bets} isLoading={isLoading} grouping={grouping} />
+        </>
+      )}
 
-      <BetList bets={bets} isLoading={isLoading} onDelete={handleDeleteBet} deletingId={deleteMutation.variables ?? undefined} />
+      {shouldShowScreen('create') && (
+        <section className="two-column">
+          <AddBetForm
+            onSubmit={handleCreateBet}
+            isSubmitting={createMutation.isPending}
+            lastError={createMutation.error?.message ?? null}
+            bankrolls={bankrolls}
+            isLoadingBankrolls={isLoadingBankrolls}
+          />
+          <CsvImportCard
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ['bets'] })
+              push('success', 'Importación completada')
+            }}
+            onError={(message) => push('error', message)}
+          />
+        </section>
+      )}
+
+      {shouldShowScreen('history') && (
+        <BetList bets={bets} isLoading={isLoading} onDelete={handleDeleteBet} deletingId={deleteMutation.variables ?? undefined} />
+      )}
     </div>
   )
 }

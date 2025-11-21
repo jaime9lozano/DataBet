@@ -24,6 +24,7 @@ export interface Bet {
 }
 
 export interface NewBet {
+  id?: string
   bankroll_id: string
   event_id?: string | null
   market_id?: string | null
@@ -38,6 +39,12 @@ export interface NewBet {
   result_amount?: number | null
   notes?: string | null
   tags?: string[]
+}
+
+export interface Bankroll {
+  id: string
+  name: string
+  currency: string
 }
 
 export interface BetFilters {
